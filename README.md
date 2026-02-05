@@ -4,6 +4,12 @@ This project is a full-stack AI chat application built to demonstrate authentica
 
 The goal of the system is to resemble a modern AI chat product while keeping the architecture simple, debuggable, and production-oriented.
 
+## Assessment Notes
+
+- No landing page by design; focus is on core functionality
+- Conversation-level memory implemented as required
+- Error states intentionally minimal for assessment scope
+
 ## Architecture Overview
 
 * **Frontend**: Built using **Next.js 14** with the App Router and Tailwind CSS.
@@ -101,8 +107,12 @@ AI responses stream token by token to the UI. Streaming is implemented for both 
 * **Truncation**: Search results are capped to a small number of results, with each result truncated to a fixed length to prevent context bloat.
 * **Generation Caps**: LLM output tokens are capped to avoid runaway generation.
 
-## Deployment Notes
+## Deployment
 
-* **Backend**: Can be containerized and deployed to platforms such as **Render**, **Railway**, or **AWS**.
-* **Frontend**: Designed to be deployed on **Vercel**.
-* **Database**: Can be hosted using a managed PostgreSQL provider such as **Neon**, **Supabase**, or **AWS RDS**.
+Backend deployed on Render using FastAPI with async PostgreSQL (Supabase).
+
+Frontend deployed on Vercel (Next.js + TypeScript + Tailwind).
+
+Environment-based config: frontend uses NEXT_PUBLIC_API_BASE_URL, backend uses Render env vars.
+
+Database: Supabase Postgres with manually applied schema (auth, workspaces, chats, messages).
