@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchAuth } from "../lib/api";
+import { fetchAuth } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { FolderPlus, Monitor, User } from "lucide-react";
 

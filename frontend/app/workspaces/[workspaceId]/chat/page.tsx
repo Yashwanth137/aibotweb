@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { fetchAuth, getToken, API_BASE } from "../../../lib/api";
+import { fetchAuth, getToken, API_BASE } from "@/lib/api";
 
 import { useParams, useRouter } from "next/navigation";
 import { Send, Plus, Bot, User, Loader2, Globe, Square, Trash2, Eraser } from "lucide-react";
