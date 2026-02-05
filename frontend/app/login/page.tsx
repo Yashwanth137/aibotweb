@@ -16,6 +16,12 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+
+        if (password.length < 4) {
+            setError("Password must be at least 4 characters");
+            return;
+        }
+
         setIsLoading(true);
         try {
             // POST to /auth/login via standard fetch (no auth header needed)
@@ -25,7 +31,10 @@ export default function LoginPage() {
                 body: JSON.stringify({ email, password })
             });
 
-            if (!res.ok) throw new Error("Invalid credentials");
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.detail || "Invalid credentials");
+            }
 
             const data = await res.json();
             setToken(data.access_token);

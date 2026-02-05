@@ -16,6 +16,12 @@ export default function RegisterPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+
+        if (password.length < 4) {
+            setError("Password must be at least 4 characters");
+            return;
+        }
+
         setIsLoading(true);
         try {
             // 1. Register
@@ -24,7 +30,10 @@ export default function RegisterPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
             });
-            if (!regRes.ok) throw new Error("Registration failed");
+            if (!regRes.ok) {
+                const errorData = await regRes.json().catch(() => ({}));
+                throw new Error(errorData.detail || "Registration failed");
+            }
 
             // 2. Login immediately
             const loginRes = await fetch(`${API_BASE}/auth/login`, {
@@ -33,7 +42,10 @@ export default function RegisterPage() {
                 body: JSON.stringify({ email, password })
             });
 
-            if (!loginRes.ok) throw new Error("Login failed after registration");
+            if (!loginRes.ok) {
+                const errorData = await loginRes.json().catch(() => ({}));
+                throw new Error(errorData.detail || "Login failed after registration");
+            }
 
             const data = await loginRes.json();
             setToken(data.access_token);

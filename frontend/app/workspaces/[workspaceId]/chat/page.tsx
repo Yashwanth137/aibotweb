@@ -5,6 +5,8 @@ import { fetchAuth, getToken, API_BASE } from "@/lib/api";
 
 import { useParams, useRouter } from "next/navigation";
 import { Send, Plus, Bot, User, Loader2, Globe, Square, Trash2, Eraser, Monitor } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Chat {
     id: string;
@@ -357,7 +359,46 @@ export default function ChatPage() {
                                                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
                                             </div>
                                         ) : (
-                                            msg.content
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm]}
+                                                components={{
+                                                    code({ node, className, children, ...props }) {
+                                                        const match = /language-(\w+)/.exec(className || '')
+                                                        const isInline = !match && !className?.includes('language-');
+                                                        return !isInline ? (
+                                                            <div className="rounded-md bg-gray-950 text-gray-50 border border-gray-800 my-4 overflow-hidden shadow-sm relative group/code">
+                                                                <div className="flex items-center justify-between px-3 py-1.5 bg-gray-900 border-b border-gray-800 text-xs text-gray-400">
+                                                                    <span>{match?.[1] || 'code'}</span>
+                                                                </div>
+                                                                <div className="p-3 overflow-x-auto text-sm font-mono leading-relaxed">
+                                                                    <code className={className} {...props}>
+                                                                        {children}
+                                                                    </code>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <code className={`px-1.5 py-0.5 rounded font-mono text-sm ${msg.role === "user" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-800 border border-gray-200"}`} {...props}>
+                                                                {children}
+                                                            </code>
+                                                        )
+                                                    },
+                                                    ul: ({ children }) => <ul className="list-disc pl-5 my-2 space-y-1">{children}</ul>,
+                                                    ol: ({ children }) => <ol className="list-decimal pl-5 my-2 space-y-1">{children}</ol>,
+                                                    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                                                    p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+                                                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                                    a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" className={`underline underline-offset-2 ${msg.role === "user" ? "text-white hover:text-gray-100" : "text-indigo-600 hover:text-indigo-700"}`}>{children}</a>,
+                                                    h1: ({ children }) => <h1 className="text-xl font-bold mb-3 mt-4">{children}</h1>,
+                                                    h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3">{children}</h2>,
+                                                    h3: ({ children }) => <h3 className="text-base font-bold mb-2 mt-3">{children}</h3>,
+                                                    blockquote: ({ children }) => <blockquote className={`border-l-4 pl-4 my-2 italic ${msg.role === "user" ? "border-white/40 text-gray-100" : "border-gray-200 text-gray-600"}`}>{children}</blockquote>,
+                                                    table: ({ children }) => <div className="overflow-x-auto my-3"><table className={`min-w-full divide-y border rounded-lg ${msg.role === "user" ? "divide-white/20 border-white/20" : "divide-gray-200 border-gray-200"}`}>{children}</table></div>,
+                                                    th: ({ children }) => <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider border-b ${msg.role === "user" ? "bg-white/10 text-white border-white/20" : "bg-gray-50 text-gray-500 border-gray-200"}`}>{children}</th>,
+                                                    td: ({ children }) => <td className={`px-3 py-2 whitespace-nowrap text-sm border-b ${msg.role === "user" ? "text-white border-white/10" : "text-gray-500 border-gray-100"}`}>{children}</td>,
+                                                }}
+                                            >
+                                                {msg.content}
+                                            </ReactMarkdown>
                                         )}
                                     </div>
                                 </div>
