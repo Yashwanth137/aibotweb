@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { fetchAuth, getToken, API_BASE } from "@/lib/api";
 
 import { useParams, useRouter } from "next/navigation";
-import { Send, Plus, Bot, User, Loader2, Globe, Square, Trash2, Eraser } from "lucide-react";
+import { Send, Plus, Bot, User, Loader2, Globe, Square, Trash2, Eraser, Monitor } from "lucide-react";
 
 interface Chat {
     id: string;
@@ -223,137 +223,193 @@ export default function ChatPage() {
     };
 
     return (
-        <div className="flex h-screen bg-gray-100">
+        <div className="flex h-screen bg-white">
             {/* Sidebar */}
-            <div className="w-64 bg-white border-r flex flex-col">
-                <div className="p-4 border-b">
+            <div className="w-72 bg-gray-50/50 border-r border-gray-100 flex flex-col">
+                <div className="p-4">
+                    <div className="flex items-center gap-2 px-2 mb-6">
+                        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                            <Monitor size={18} />
+                        </div>
+                        <span className="font-semibold text-gray-900 tracking-tight">AIChat</span>
+                    </div>
                     <button
                         onClick={createChat}
                         disabled={loading}
-                        className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 px-4 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all duration-200 ease-in-out font-medium text-sm shadow-sm hover:shadow-md hover:shadow-indigo-500/10"
                     >
-                        {loading ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />}
+                        {loading ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
                         New Chat
                     </button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-2 space-y-2">
+
+                <div className="flex-1 overflow-y-auto px-3 space-y-1">
+                    <div className="px-3 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">History</div>
                     {chats.map((chat) => (
-                        <div key={chat.id} className="group/item flex items-center pr-2 relative">
+                        <div key={chat.id} className="group/item flex items-center relative">
                             <button
                                 onClick={() => setSelectedChatId(chat.id)}
-                                className={`flex-1 text-left p-3 rounded-md text-sm truncate ${selectedChatId === chat.id
-                                    ? "bg-indigo-50 text-indigo-700 font-medium"
-                                    : "text-gray-700 hover:bg-gray-50"
+                                className={`flex-1 text-left py-2.5 px-3 rounded-lg text-sm truncate transition-all duration-200 ease-in-out ${selectedChatId === chat.id
+                                    ? "bg-white text-indigo-600 shadow-sm ring-1 ring-gray-100 font-medium"
+                                    : "text-gray-600 hover:bg-gray-100/80 hover:text-gray-900"
                                     }`}
                             >
                                 {chat.title || "Untitled Chat"}
                             </button>
                             <button
                                 onClick={(e) => handleDeleteChat(e, chat.id)}
-                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded hidden group-hover/item:block transition-all"
+                                className="absolute right-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover/item:opacity-100 transition-all"
                                 title="Delete Chat"
                             >
-                                <Trash2 size={16} />
+                                <Trash2 size={14} />
                             </button>
                         </div>
                     ))}
                 </div>
-                <div className="p-4 border-t text-xs text-gray-400 text-center">
-                    Workspace: {workspaceId ? String(workspaceId).slice(0, 8) : "..."}
+
+                <div className="p-4 border-t border-gray-100">
+                    <button
+                        onClick={() => router.push("/workspaces")}
+                        className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                        <User size={18} />
+                        <div className="flex flex-col items-start">
+                            <span>User Account</span>
+                            <span className="text-xs text-gray-400 font-normal">Workspace: {workspaceId?.toString().slice(0, 4)}...</span>
+                        </div>
+                    </button>
                 </div>
             </div>
 
             {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col bg-white">
                 {/* Header */}
-                <div className="h-16 border-b bg-white flex items-center px-6 justify-between">
-                    <h2 className="font-semibold text-gray-800">
-                        {chats.find(c => c.id === selectedChatId)?.title || "Chat"}
-                    </h2>
-                    <div className="flex items-center gap-2">
-                        <span className={`text-sm ${useAgent ? "text-indigo-600 font-bold" : "text-gray-500"}`}>
-                            Agent Mode
-                        </span>
-                        <button
-                            onClick={() => setUseAgent(!useAgent)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${useAgent ? 'bg-indigo-600' : 'bg-gray-200'}`}
-                        >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useAgent ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                        {selectedChatId && (
-                            <button
-                                onClick={handleClearChat}
-                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors ml-2"
-                                title="Clear Chat History"
-                            >
-                                <Eraser size={18} />
-                            </button>
-                        )}
+                <div className="h-16 border-b border-gray-50 flex items-center px-8 justify-between shrink-0">
+                    <div className="flex items-center gap-4">
+                        <h2 className="font-semibold text-gray-900 text-lg">
+                            {chats.find(c => c.id === selectedChatId)?.title || "New Conversation"}
+                        </h2>
                     </div>
+                    <div className="flex items-center gap-3 bg-gray-50/50 p-1 rounded-full border border-gray-100">
+                        <button
+                            onClick={() => setUseAgent(false)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${!useAgent ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                        >
+                            Standard
+                        </button>
+                        <button
+                            onClick={() => setUseAgent(true)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${useAgent ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                        >
+                            <Globe size={12} />
+                            Agent Mode
+                        </button>
+                    </div>
+                    {selectedChatId && (
+                        <button
+                            onClick={handleClearChat}
+                            className="ml-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-full transition-colors"
+                            title="Clear Chat History"
+                        >
+                            <Eraser size={18} />
+                        </button>
+                    )}
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
                     {messages.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                            <Bot size={48} className="mb-4 opacity-50" />
-                            <p>Select a chat or start a new conversation.</p>
+                        <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
+                            <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 text-indigo-600">
+                                <Bot size={32} />
+                            </div>
+                            <h3 className="text-xl font-medium text-gray-900 mb-2">How can I help you today?</h3>
+                            <p className="text-gray-500">
+                                Start a new conversation or toggle Agent Mode for web-connected answers.
+                            </p>
                         </div>
                     ) : (
-                        messages.map((msg, idx) => (
-                            <div
-                                key={idx}
-                                className={`flex gap-4 ${msg.role === "user" ? "flex-row-reverse" : ""
-                                    }`}
-                            >
+                        <>
+                            {messages.map((msg, idx) => (
                                 <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === "user"
-                                        ? "bg-indigo-100 text-indigo-600"
-                                        : "bg-green-100 text-green-600"
+                                    key={idx}
+                                    className={`flex gap-4 max-w-3xl mx-auto ${msg.role === "user" ? "flex-row-reverse" : ""
                                         }`}
                                 >
-                                    {msg.role === "user" ? <User size={16} /> : <Bot size={16} />}
+                                    <div
+                                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1 ${msg.role === "user"
+                                            ? "bg-gray-900 text-white"
+                                            : "bg-indigo-600 text-white"
+                                            }`}
+                                    >
+                                        {msg.role === "user" ? <User size={16} /> : <Bot size={16} />}
+                                    </div>
+                                    <div
+                                        className={`max-w-[85%] p-4 rounded-2xl text-[15px] leading-relaxed whitespace-pre-wrap shadow-sm border ${msg.role === "user"
+                                            ? "bg-gray-50 border-gray-100 text-gray-900 rounded-tr-sm"
+                                            : "bg-white border-gray-100 text-gray-800 rounded-tl-sm"
+                                            }`}
+                                    >
+                                        {msg.role === "assistant" && !msg.content && streaming ? (
+                                            <div className="flex space-x-1 items-center h-6 px-2">
+                                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                                            </div>
+                                        ) : (
+                                            msg.content
+                                        )}
+                                    </div>
                                 </div>
-                                <div
-                                    className={`max-w-[80%] p-3 rounded-lg text-sm whitespace-pre-wrap ${msg.role === "user"
-                                        ? "bg-indigo-600 text-white"
-                                        : "bg-white border shadow-sm text-gray-800"
-                                        }`}
-                                >
-                                    {msg.content}
+                            ))}
+                            {/* Thinking Indicator Fallback */}
+                            {streaming && messages[messages.length - 1]?.role === "user" && (
+                                <div className="flex gap-4 max-w-3xl mx-auto">
+                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1 bg-indigo-600 text-white">
+                                        <Bot size={16} />
+                                    </div>
+                                    <div className="max-w-[85%] p-4 rounded-2xl bg-white border border-gray-100 shadow-sm rounded-tl-sm">
+                                        <div className="flex space-x-1 items-center h-6 px-2">
+                                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            )}
+                        </>
                     )}
                     <div ref={messagesEndRef} />
                 </div>
 
                 {/* Input */}
-                <div className="p-4 bg-white border-t">
-                    <form onSubmit={handleSend} className="relative max-w-4xl mx-auto">
-                        <input
-                            type="text"
-                            className="w-full pl-4 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm text-gray-900 placeholder-gray-500"
-                            placeholder={useAgent ? "Ask the agent (searches web)..." : "Message AI..."}
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            disabled={streaming || !selectedChatId}
-                        />
-                        <button
-                            type={streaming ? "button" : "submit"}
-                            onClick={streaming ? handleStop : undefined}
-                            disabled={!streaming && (!input.trim() || !selectedChatId)}
-                            className={`absolute right-2 top-2 p-1.5 rounded-md text-white transition-colors ${streaming
-                                ? "bg-red-500 hover:bg-red-600"
-                                : "bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:bg-gray-400"
-                                }`}
-                        >
-                            {streaming ? <Square size={20} fill="currentColor" /> : <Send size={20} />}
-                        </button>
+                <div className="p-6 bg-white">
+                    <form onSubmit={handleSend} className="relative max-w-3xl mx-auto">
+                        <div className="relative flex items-center">
+                            <input
+                                type="text"
+                                className="w-full pl-6 pr-14 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-sm text-gray-900 placeholder-gray-400 transition-all duration-200 ease-in-out"
+                                placeholder={useAgent ? "Ask anything (Web Search Enabled)..." : "Message AI..."}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                disabled={streaming || !selectedChatId}
+                            />
+                            <button
+                                type={streaming ? "button" : "submit"}
+                                onClick={streaming ? handleStop : undefined}
+                                disabled={!streaming && (!input.trim() || !selectedChatId)}
+                                className={`absolute right-2 p-2 rounded-xl transition-all duration-200 ease-in-out ${streaming
+                                    ? "bg-gray-100 text-gray-900 hover:bg-gray-200"
+                                    : "bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:bg-indigo-600"
+                                    }`}
+                            >
+                                {streaming ? <Square size={18} fill="currentColor" /> : <Send size={18} />}
+                            </button>
+                        </div>
+                        <div className="mt-3 text-center">
+                            <span className="text-[10px] text-gray-400">AI can make mistakes. Check important info.</span>
+                        </div>
                     </form>
-                    <div className="text-center mt-2 text-xs text-gray-400 flex items-center justify-center gap-1">
-                        {useAgent ? <><Globe size={12} /> Web Search Enabled</> : "Standard Model"}
-                    </div>
                 </div>
             </div>
         </div>
