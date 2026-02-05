@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { fetchAuth, setToken } from "@/lib/api";
+import { fetchAuth, setToken, API_BASE } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -16,7 +16,7 @@ export default function LoginPage() {
         setError("");
         try {
             // POST to /auth/login via standard fetch (no auth header needed)
-            const res = await fetch("http://localhost:8000/auth/login", {
+            const res = await fetch(`${API_BASE}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { setToken } from "@/lib/api";
+import { setToken, API_BASE } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -16,7 +16,7 @@ export default function RegisterPage() {
         setError("");
         try {
             // 1. Register
-            const regRes = await fetch("http://localhost:8000/auth/register", {
+            const regRes = await fetch(`${API_BASE}/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
@@ -24,7 +24,7 @@ export default function RegisterPage() {
             if (!regRes.ok) throw new Error("Registration failed");
 
             // 2. Login immediately
-            const loginRes = await fetch("http://localhost:8000/auth/login", {
+            const loginRes = await fetch(`${API_BASE}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
