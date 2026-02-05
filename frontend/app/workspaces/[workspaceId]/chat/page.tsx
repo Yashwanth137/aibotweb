@@ -308,7 +308,7 @@ export default function ChatPage() {
     );
 
     return (
-        <div className="flex h-screen bg-white">
+        <div className="fixed inset-0 flex h-[100dvh] bg-white overflow-hidden overscroll-none touch-none md:touch-auto">
             <div className="hidden md:flex w-72 bg-gray-50/50 border-r border-gray-100 flex-col shrink-0">
                 <SidebarContent />
             </div>
@@ -376,9 +376,9 @@ export default function ChatPage() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6">
+                <div className={`flex-1 overflow-y-auto px-4 md:px-8 ${messages.length === 0 ? "flex flex-col justify-center" : "py-6 space-y-6"}`}>
                     {messages.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto px-4">
+                        <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto px-4">
                             <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 text-indigo-600">
                                 <Bot size={32} />
                             </div>
@@ -487,7 +487,7 @@ export default function ChatPage() {
                             <input
                                 type="text"
                                 className="w-full pl-6 pr-14 py-3 md:py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-sm text-gray-900 placeholder-gray-400 transition-all duration-200 ease-in-out text-sm md:text-base"
-                                placeholder={useAgent ? "Ask anything..." : "Message AI..."}
+                                placeholder={useAgent ? "Ask anything (web search enabled)..." : "Message AI..."}
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 disabled={streaming}
