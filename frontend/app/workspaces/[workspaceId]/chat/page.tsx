@@ -36,26 +36,28 @@ export default function ChatPage() {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false); // Mobile Sidebar State
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const skipNextLoadRef = useRef(false);
 
-    // Load Chats
     useEffect(() => {
         if (workspaceId) {
             loadChats();
         }
     }, [workspaceId]);
 
-    // Load Messages when chat selected
     useEffect(() => {
         if (selectedChatId) {
-            loadMessages(selectedChatId);
-            // Close mobile sidebar on selection
+            // Skip fetch if just created locally
+            if (skipNextLoadRef.current) {
+                skipNextLoadRef.current = false;
+            } else {
+                loadMessages(selectedChatId);
+            }
             setIsMobileSidebarOpen(false);
         } else {
             setMessages([]);
         }
     }, [selectedChatId]);
 
-    // Scroll to bottom
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, streaming]);
@@ -65,9 +67,7 @@ export default function ChatPage() {
             const res = await fetchAuth(`/chats?workspace_id=${workspaceId}`);
             const data = await res.json();
             setChats(data);
-            if (data.length > 0 && !selectedChatId) {
-                setSelectedChatId(data[0].id);
-            }
+            // Removed auto-selection to show Start Screen by default
         } catch (err) {
             console.error(err);
         }
@@ -83,19 +83,25 @@ export default function ChatPage() {
         }
     };
 
-    const createChat = async () => {
+    const handleNewChat = () => {
+        setSelectedChatId(null);
+        setMessages([]);
+        setIsMobileSidebarOpen(false);
+    };
+
+    const createChat = async (title: string = "New Chat") => {
         try {
             setLoading(true);
             const res = await fetchAuth("/chats", {
                 method: "POST",
-                body: JSON.stringify({ workspace_id: workspaceId, title: "New Chat" }),
+                body: JSON.stringify({ workspace_id: workspaceId, title }),
             });
             const newChat = await res.json();
             setChats([newChat, ...chats]);
-            setSelectedChatId(newChat.id);
-            setIsMobileSidebarOpen(false); // Close sidebar on creation
+            return newChat;
         } catch (err) {
             console.error(err);
+            return null;
         } finally {
             setLoading(false);
         }
@@ -130,10 +136,25 @@ export default function ChatPage() {
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || !selectedChatId || streaming) return;
+        if (!input.trim() || streaming) return;
 
         const userMessage = input;
         setInput("");
+
+        let currentChatId = selectedChatId;
+
+        // Lazy Initial Creation
+        if (!currentChatId) {
+            const newChat = await createChat(userMessage.slice(0, 30) || "New Chat"); // Use first few words as title
+            if (newChat) {
+                currentChatId = newChat.id;
+                skipNextLoadRef.current = true; // Mark to skip the next useEffect load
+                setSelectedChatId(currentChatId);
+            } else {
+                // Error creating chat
+                return;
+            }
+        }
 
         const tempUserMsg: Message = { role: "user", content: userMessage };
         setMessages((prev) => [...prev, tempUserMsg]);
@@ -157,7 +178,7 @@ export default function ChatPage() {
                     "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    chat_id: selectedChatId,
+                    chat_id: currentChatId,
                     message: userMessage
                 }),
                 signal: controller.signal
@@ -215,10 +236,8 @@ export default function ChatPage() {
         } finally {
             setStreaming(false);
             abortControllerRef.current = null;
-            // Refresh chats to check for auto-rename (new title)
-            if (messages.length <= 1) { // checking if it was a new chat
-                loadChats();
-            }
+            // Load chats again to ensure title updates if backend handles it, or just to sync
+            loadChats();
         }
     };
 
@@ -228,7 +247,6 @@ export default function ChatPage() {
         }
     };
 
-    // Sidebar Content Component for reuse
     const SidebarContent = () => (
         <div className="flex flex-col h-full bg-gray-50/50">
             <div className="p-4">
@@ -241,7 +259,7 @@ export default function ChatPage() {
                     </div>
                 </div>
                 <button
-                    onClick={createChat}
+                    onClick={handleNewChat}
                     disabled={loading}
                     className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 px-4 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all duration-200 ease-in-out font-medium text-sm shadow-sm hover:shadow-md hover:shadow-indigo-500/10"
                 >
@@ -291,28 +309,22 @@ export default function ChatPage() {
 
     return (
         <div className="flex h-screen bg-white">
-            {/* Desktop Sidebar */}
             <div className="hidden md:flex w-72 bg-gray-50/50 border-r border-gray-100 flex-col shrink-0">
                 <SidebarContent />
             </div>
 
-            {/* Mobile Sidebar Overlay */}
             {isMobileSidebarOpen && (
                 <div className="fixed inset-0 z-50 md:hidden">
-                    {/* Backdrop */}
                     <div
                         className="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity"
                         onClick={() => setIsMobileSidebarOpen(false)}
                     />
-                    {/* Drawer */}
                     <div className="absolute inset-y-0 left-0 w-[80%] max-w-xs bg-white shadow-2xl transform transition-transform duration-300 ease-in-out h-full border-r border-gray-100">
                         <SidebarContent />
-                        {/* Close Button mobile only */}
                         <button
                             onClick={() => setIsMobileSidebarOpen(false)}
                             className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600"
                         >
-                            {/* You can import 'X' from lucide-react if needed, or just let users click outside/select chat */}
                         </button>
                     </div>
                 </div>
@@ -478,12 +490,12 @@ export default function ChatPage() {
                                 placeholder={useAgent ? "Ask anything..." : "Message AI..."}
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                disabled={streaming || !selectedChatId}
+                                disabled={streaming}
                             />
                             <button
                                 type={streaming ? "button" : "submit"}
                                 onClick={streaming ? handleStop : undefined}
-                                disabled={!streaming && (!input.trim() || !selectedChatId)}
+                                disabled={!streaming && !input.trim()}
                                 className={`absolute right-2 p-2 rounded-xl transition-all duration-200 ease-in-out ${streaming
                                     ? "bg-gray-100 text-gray-900 hover:bg-gray-200"
                                     : "bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:bg-indigo-600"

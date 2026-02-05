@@ -17,6 +17,7 @@ export default function WorkspacesPage() {
     const [loading, setLoading] = useState(true);
     const [newTitle, setNewTitle] = useState("");
     const [isCreating, setIsCreating] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const router = useRouter();
 
     const loadWorkspaces = async () => {
@@ -58,7 +59,7 @@ export default function WorkspacesPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-50 to-slate-100">
             {/* Minimal Header with Stronger Distinction */}
-            <div className="w-full px-8 h-16 flex items-center justify-between border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm transition-all duration-200">
+            <div className="w-full px-4 md:px-8 h-16 flex items-center justify-between border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm transition-all duration-200">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gradient-to-tr from-indigo-700 to-violet-700 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
                         <Monitor size={18} />
@@ -66,11 +67,23 @@ export default function WorkspacesPage() {
                     <span className="font-bold text-gray-900 tracking-tight">AIChat</span>
                 </div>
 
-                <div className="relative group">
-                    <button className="w-9 h-9 rounded-full bg-gray-50 text-indigo-700 hover:bg-indigo-50 flex items-center justify-center transition-all shadow-sm ring-1 ring-gray-200 hover:ring-indigo-300">
+                <div className="relative">
+                    <button
+                        onClick={() => setIsProfileOpen(!isProfileOpen)}
+                        className="w-9 h-9 rounded-full bg-gray-50 text-indigo-700 hover:bg-indigo-50 flex items-center justify-center transition-all shadow-sm ring-1 ring-gray-200 hover:ring-indigo-300 active:scale-95"
+                    >
                         <User size={18} />
                     </button>
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl ring-1 ring-black/5 py-1 z-20 border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right">
+
+                    {/* Backdrop to close menu when clicking outside */}
+                    {isProfileOpen && (
+                        <div
+                            className="fixed inset-0 z-40 bg-transparent"
+                            onClick={() => setIsProfileOpen(false)}
+                        />
+                    )}
+
+                    <div className={`absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl ring-1 ring-black/5 py-1 z-50 border border-gray-100 transition-all duration-200 transform origin-top-right ${isProfileOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}`}>
                         <button
                             onClick={() => {
                                 localStorage.removeItem("token");
@@ -84,32 +97,32 @@ export default function WorkspacesPage() {
                 </div>
             </div>
 
-            <div className="w-full px-8 pt-12 pb-20 max-w-[1920px] mx-auto">
+            <div className="w-full px-4 md:px-8 pt-8 md:pt-12 pb-20 max-w-[1920px] mx-auto">
                 {/* Hero / Create Section */}
-                <div className="text-center mb-16 relative">
+                <div className="text-center mb-12 md:mb-16 relative">
                     {/* Ambient background glow */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-indigo-500/5 blur-3xl rounded-full pointer-events-none"></div>
 
-                    <h1 className="text-4xl font-semibold text-gray-900 mb-3 tracking-tight">Welcome back</h1>
-                    <p className="text-gray-500 mb-10 text-lg">Select a workspace or create a new one to get started.</p>
+                    <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-3 tracking-tight">Welcome back</h1>
+                    <p className="text-gray-500 mb-8 md:mb-10 text-base md:text-lg">Select a workspace or create a new one to get started.</p>
 
                     <form onSubmit={handleCreate} className="relative max-w-2xl mx-auto group z-0">
                         <div className="relative flex items-center">
                             <input
                                 type="text"
                                 placeholder="Name your new workspace..."
-                                className="w-full pl-6 pr-36 py-5 bg-white border border-gray-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 outline-none text-gray-900 placeholder-gray-400 text-lg transition-all duration-300 ease-out shadow-lg shadow-gray-200/50 group-hover:shadow-indigo-500/10"
+                                className="w-full pl-6 pr-20 md:pr-36 py-4 md:py-5 bg-white border border-gray-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 outline-none text-gray-900 placeholder-gray-400 text-base md:text-lg transition-all duration-300 ease-out shadow-lg shadow-gray-200/50 group-hover:shadow-indigo-500/10"
                                 value={newTitle}
                                 onChange={(e) => setNewTitle(e.target.value)}
                             />
-                            <div className="absolute right-2.5">
+                            <div className="absolute right-2 md:right-2.5">
                                 <button
                                     type="submit"
                                     disabled={!newTitle.trim() || isCreating}
-                                    className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2 font-medium text-sm transition-all duration-200 ease-out"
+                                    className="bg-indigo-600 text-white p-3 md:px-6 md:py-3 rounded-xl hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2 font-medium text-sm transition-all duration-200 ease-out"
                                 >
                                     {isCreating ? <Loader2 className="animate-spin" size={18} /> : <FolderPlus size={18} />}
-                                    Create
+                                    <span className="hidden md:inline">Create</span>
                                 </button>
                             </div>
                         </div>

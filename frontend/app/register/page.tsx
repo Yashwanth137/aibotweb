@@ -62,7 +62,7 @@ export default function RegisterPage() {
                 <h1 className="text-4xl font-extrabold text-indigo-600 mb-2">AI Chat Bot</h1>
                 <p className="text-lg text-gray-600">Your personal AI workspace</p>
             </div>
-            <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-md">
+            <div className="max-w-md w-full space-y-8 p-6 md:p-8 bg-white rounded-xl shadow-md">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                         Create an account
