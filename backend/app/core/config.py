@@ -24,7 +24,14 @@ class Settings(BaseSettings):
     @property
     def ASYNC_DATABASE_URL(self) -> str:
         if self.DATABASE_URL:
-            return self.DATABASE_URL
+            if self.DATABASE_URL.startswith("postgresql+asyncpg://"):
+                return self.DATABASE_URL
+            return self.DATABASE_URL.replace(
+                "postgresql://",
+                "postgresql+asyncpg://",
+                1,
+            )
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
 
 settings = Settings()
