@@ -9,6 +9,7 @@ The goal of the system is to resemble a modern AI chat product while keeping the
 - No landing page by design; focus is on core functionality
 - Conversation-level memory implemented as required
 - Error states intentionally minimal for assessment scope
+- Backend is deployed on Render free tier and may take ~20–30s to wake up after inactivity.
 
 ## Architecture Overview
 
